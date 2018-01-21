@@ -1,0 +1,32 @@
+
+boolean : true
+integer : 123
+string  : "hello"
+floating-point: 12.34
+
+
+tooverride: yaml
+
+
+struct:
+    exact:
+        IntValue: 123
+        StringValue: "abc"
+    lower:
+        intvalue: 123
+        stringvalue: "abc"
+    snake:
+        int_value: 123
+        string_value: "abc"
+    url:
+        int-value: 123
+        string-value: "abc"
+    optional:
+        IntValue: 123
+        StringValue: "abc"
+        OptionalValue: "def" 
+
+
+map:
+    field-a: 1234
+    field-b: "abcd"
