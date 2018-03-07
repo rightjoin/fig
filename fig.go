@@ -65,9 +65,9 @@ func jumpstart() {
 	}
 }
 
-// exists checks if the given key is present.
+// Exists checks if the given key is present.
 // It also loads configuration (if missing)
-func exists(keys ...string) bool {
+func Exists(keys ...string) bool {
 	if configuration == nil {
 		jumpstart()
 	}
@@ -76,9 +76,9 @@ func exists(keys ...string) bool {
 	return configuration.IsSet(key)
 }
 
-// mustExist panics if the given configuration key is missing
-func mustExist(key string) {
-	if !exists(key) {
+// MustExist panics if the given configuration key is missing
+func MustExist(key string) {
+	if !Exists(key) {
 		panic("configuration key missing:" + key)
 	}
 }
@@ -87,7 +87,7 @@ func mustExist(key string) {
 // If key is missing it returns defaultVal
 func IntOr(defaultVal int, keys ...string) int {
 	key := strings.Join(keys, ".")
-	if !exists(key) {
+	if !Exists(key) {
 		return defaultVal
 	}
 
@@ -98,7 +98,7 @@ func IntOr(defaultVal int, keys ...string) int {
 // Panics if the key is missing.
 func Int(keys ...string) int {
 	key := strings.Join(keys, ".")
-	mustExist(key)
+	MustExist(key)
 	return configuration.GetInt(key)
 }
 
@@ -106,7 +106,7 @@ func Int(keys ...string) int {
 // If key is missing it returns defaultVal
 func FloatOr(defaultVal float64, keys ...string) float64 {
 	key := strings.Join(keys, ".")
-	if !exists(key) {
+	if !Exists(key) {
 		return defaultVal
 	}
 
@@ -117,7 +117,7 @@ func FloatOr(defaultVal float64, keys ...string) float64 {
 // Panics if the key is missing.
 func Float(keys ...string) float64 {
 	key := strings.Join(keys, ".")
-	mustExist(key)
+	MustExist(key)
 	return configuration.GetFloat64(key)
 }
 
@@ -125,7 +125,7 @@ func Float(keys ...string) float64 {
 // If key is missing it returns defaultVal
 func StringOr(defaultVal string, keys ...string) string {
 	key := strings.Join(keys, ".")
-	if !exists(key) {
+	if !Exists(key) {
 		return defaultVal
 	}
 
@@ -136,7 +136,7 @@ func StringOr(defaultVal string, keys ...string) string {
 // Panics if the key is missing.
 func String(keys ...string) string {
 	key := strings.Join(keys, ".")
-	mustExist(key)
+	MustExist(key)
 	return configuration.GetString(key)
 }
 
@@ -144,7 +144,7 @@ func String(keys ...string) string {
 // If key is missing it returns defaultVal
 func BoolOr(defaultVal bool, keys ...string) bool {
 	key := strings.Join(keys, ".")
-	if !exists(key) {
+	if !Exists(key) {
 		return defaultVal
 	}
 
@@ -155,7 +155,7 @@ func BoolOr(defaultVal bool, keys ...string) bool {
 // Panics if the key is missing.
 func Bool(keys ...string) bool {
 	key := strings.Join(keys, ".")
-	mustExist(key)
+	MustExist(key)
 	return configuration.GetBool(key)
 }
 
@@ -163,7 +163,7 @@ func Bool(keys ...string) bool {
 // Panics if the key is missing.
 func Map(keys ...string) map[string]interface{} {
 	key := strings.Join(keys, ".")
-	mustExist(key)
+	MustExist(key)
 	return configuration.GetStringMap(key)
 }
 
@@ -198,7 +198,7 @@ func Struct(addr interface{}, keys ...string) {
 		found := false
 		for _, amatch := range lookup {
 			//fmt.Println("checking:", container, amatch)
-			if exists(container, amatch) {
+			if Exists(container, amatch) {
 				found = true
 				switch fmt.Sprintf("%s", ftype.Type) {
 				case "string":
