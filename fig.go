@@ -167,6 +167,14 @@ func Map(keys ...string) map[string]interface{} {
 	return configuration.GetStringMap(key)
 }
 
+// StringSlice returns a splice of string at the given key.
+// Panics if the key is not present.
+func StringSlice(keys ...string) []string {
+	key := strings.Join(keys, ".")
+	MustExist(key)
+	return configuration.GetStringSlice(key)
+}
+
 // Struct is used to parse and load simple structures. Most common use is
 // reading connection strings.
 // Note that it does not work for nested structs or arrays

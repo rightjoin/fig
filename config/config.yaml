@@ -30,3 +30,8 @@ struct:
 map:
     field-a: 1234
     field-b: "abcd"
+
+string-slice:
+    - str1
+    - str2
+    - 123
