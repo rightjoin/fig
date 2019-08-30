@@ -101,3 +101,17 @@ func TestMap(t *testing.T) {
 	assert.Equal(t, 1234, data["field-a"])
 	assert.Equal(t, "abcd", data["field-b"])
 }
+
+func TestStringSlice(t *testing.T) {
+	configuration = nil
+
+	splice := StringSlice("string-slice")
+	assert.Equal(t, []string{"str1", "str2"}, splice)
+}
+
+func TestStringSliceOr(t *testing.T) {
+	configuration = nil
+
+	splice := StringSliceOr([]string{"def1"}, "string-slice-or")
+	assert.Equal(t, []string{"def1"}, splice)
+}
