@@ -108,3 +108,10 @@ func TestStringSlice(t *testing.T) {
 	splice := StringSlice("string-slice")
 	assert.Equal(t, []string{"str1", "str2"}, splice)
 }
+
+func TestStringSliceOr(t *testing.T) {
+	configuration = nil
+
+	splice := StringSliceOr([]string{"def1"}, "string-slice-or")
+	assert.Equal(t, []string{"def1"}, splice)
+}

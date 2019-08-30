@@ -175,6 +175,16 @@ func StringSlice(keys ...string) []string {
 	return configuration.GetStringSlice(key)
 }
 
+// StringSliceOr returns a splice of string at the given key.
+// If key is missing it returns defaultVal.
+func StringSliceOr(defaultVal []string, keys ...string) []string {
+	key := strings.Join(keys, ".")
+	if !Exists(key) {
+		return defaultVal
+	}
+	return configuration.GetStringSlice(key)
+}
+
 // Struct is used to parse and load simple structures. Most common use is
 // reading connection strings.
 // Note that it does not work for nested structs or arrays
