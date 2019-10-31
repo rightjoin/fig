@@ -2,6 +2,7 @@ package fig
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -41,6 +42,40 @@ var FileOrder = []string{
 // ShowFiles if set to true, will output the files to StdOut
 // which were read to build the overall configuration
 var ShowFiles = false
+
+func init() {
+	files := make([]string, 0)
+
+	env := os.Getenv("FG_CONFIG_ENV")
+
+	switch {
+	case env != "" && env != "dev":
+		files = append(files, []string{
+			fmt.Sprintf("./config/%s.yaml", env),
+			fmt.Sprintf("./config/%s.json", env),
+			fmt.Sprintf("%s.yaml", env),
+			fmt.Sprintf("%s.json", env),
+		}...)
+	default:
+		files = append(files, []string{
+			"./config/dev.yaml",
+			"./config/dev.json",
+			"dev.yaml",
+			"dev.json",
+		}...)
+	}
+
+	files = append(files, []string{
+		"./config/config.yaml",
+		"./config/config.json",
+		"config.yaml",
+		"config.json",
+	}...)
+
+	FileOrder = files
+
+	jumpstart()
+}
 
 // jumpstart loads the configuration
 func jumpstart() {
