@@ -35,3 +35,12 @@ string-slice:
     - str1
     - str2
     - 123
+
+arr-json:
+    -
+        key: value
+        key2: value
+    -
+        key: value2
+        key2: value3
+        key3: value4

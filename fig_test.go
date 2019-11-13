@@ -115,3 +115,12 @@ func TestStringSliceOr(t *testing.T) {
 	splice := StringSliceOr([]string{"def1"}, "string-slice-or")
 	assert.Equal(t, []string{"def1"}, splice)
 }
+
+func TestValueOf(t *testing.T) {
+	configuration = nil
+
+	data := ValueOf("arr-json")
+	arr := data.([]interface{})
+
+	assert.Equal(t, 2, len(arr))
+}
