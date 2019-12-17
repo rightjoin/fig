@@ -7,15 +7,23 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/serenize/snaker"
-
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/jacobstr/confer"
+	"github.com/pkg/errors"
+	"github.com/serenize/snaker"
 )
 
 // TODO:
 // - allow command line arguments to be passed to override configurations
 // - eg. --APP_PORT=1234, should be bubbled to the right place
 var configuration *confer.Config
+
+const supportedProtocolPrefix = "ssm@"
+
+var ssmMap = make(map[string]string, 0)
 
 // FileOrder contains the name, path and order in which the configuration
 // files will be read. The first file will have highest priority
@@ -164,7 +172,20 @@ func StringOr(defaultVal string, keys ...string) string {
 		return defaultVal
 	}
 
-	return configuration.GetString(key)
+	val := configuration.GetString(key)
+	if _, ok := ssmMap[val]; ok {
+		return ssmMap[val]
+	}
+
+	if strings.HasPrefix(val, supportedProtocolPrefix) {
+		ssmVal, err := FetchFromSSM(val)
+		if err != nil {
+			return defaultVal
+		}
+		val = *ssmVal
+	}
+
+	return val
 }
 
 // String returns the string value at the given key.
@@ -172,7 +193,22 @@ func StringOr(defaultVal string, keys ...string) string {
 func String(keys ...string) string {
 	key := strings.Join(keys, ".")
 	MustExist(key)
-	return configuration.GetString(key)
+
+	val := configuration.GetString(key)
+	if _, ok := ssmMap[val]; ok {
+		return ssmMap[val]
+	}
+
+	if strings.HasPrefix(val, supportedProtocolPrefix) {
+		ssmVal, err := FetchFromSSM(val)
+		if err != nil {
+			fmt.Printf("cannot fetch value from SSM for key: %s", key)
+			return val
+		}
+		val = *ssmVal
+	}
+
+	return val
 }
 
 // BoolOr returns the bool value at the given key.
@@ -273,4 +309,47 @@ func Struct(addr interface{}, keys ...string) {
 			}
 		}
 	}
+}
+
+// FetchFromSSM looks up the AWS SSM for the given key and returns the result.
+func FetchFromSSM(ssmString string) (*string, error) {
+
+	// Separate the look-up key from the ssmString
+	// e.g. ssm@key
+	key := ssmString[strings.Index(ssmString, "@")+1:]
+
+	awsRegion := os.Getenv("AWS_REGION")
+	// use the default aws region
+	if awsRegion == "" {
+		awsRegion = "ap-south-1"
+	}
+
+	config := &aws.Config{
+		Region: aws.String(awsRegion),
+	}
+
+	awsSess, err := session.NewSessionWithOptions(session.Options{
+		Config:            *config,
+		SharedConfigState: session.SharedConfigEnable,
+	})
+
+	if err != nil {
+		panic(errors.Wrap(err, "cannot create aws session for fetching creds form SSM"))
+	}
+
+	ssmSvc := ssm.New(awsSess, config)
+
+	val, err := ssmSvc.GetParameter(&ssm.GetParameterInput{
+		Name:           aws.String(key),
+		WithDecryption: aws.Bool(true),
+	})
+
+	if err != nil {
+		if awsErr, ok := err.(awserr.Error); ok {
+
+			return nil, errors.Wrapf(awsErr, "cannot fetch value from SSM corresponding to key %s", key)
+		}
+	}
+
+	return val.Parameter.Value, nil
 }

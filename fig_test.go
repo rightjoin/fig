@@ -115,3 +115,28 @@ func TestStringSliceOr(t *testing.T) {
 	splice := StringSliceOr([]string{"def1"}, "string-slice-or")
 	assert.Equal(t, []string{"def1"}, splice)
 }
+
+func TestSSMString(t *testing.T) {
+	configuration = nil
+
+	str := String("string.password")
+	str2 := String("string.store-password")
+
+	assert.Equal(t, "TheReaper61", str)
+	assert.Equal(t, "SierraTango@61", str2)
+}
+
+func TestSSMStruct(t *testing.T) {
+	configuration = nil
+
+	type ConfigStruct struct {
+		Password      string `json:"password"`
+		StorePassword string `json:"store-password"`
+		UserName      string `json:"username"`
+	}
+
+	cs := ConfigStruct{}
+
+	Struct(&cs, "ssm-struct", "struct")
+	assert.Equal(t, "SierraTango@61", cs.StorePassword)
+}

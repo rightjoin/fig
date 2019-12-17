@@ -35,3 +35,13 @@ string-slice:
     - str1
     - str2
     - 123
+
+string:
+    password: ssm@password
+    store-password: ssm@/store/password
+
+ssm-struct:
+    struct:
+        password: ssm@password
+        store-password: ssm@/store/password
+        username: ssm@user
