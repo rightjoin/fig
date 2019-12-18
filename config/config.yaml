@@ -36,7 +36,7 @@ string-slice:
     - str2
     - 123
 
-string:
+ssm-string:
     password: ssm@password
     store-password: ssm@/store/password
 

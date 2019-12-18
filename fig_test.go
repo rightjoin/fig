@@ -119,8 +119,8 @@ func TestStringSliceOr(t *testing.T) {
 func TestSSMString(t *testing.T) {
 	configuration = nil
 
-	str := String("string.password")
-	str2 := String("string.store-password")
+	str := String("ssm-string.password")
+	str2 := String("ssm-string.store-password")
 
 	assert.Equal(t, "TheReaper61", str)
 	assert.Equal(t, "SierraTango@61", str2)
