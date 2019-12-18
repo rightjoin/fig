@@ -186,8 +186,7 @@ func StringOr(defaultVal string, keys ...string) string {
 		return ssmMap[val]
 	}
 
-	ssmMap[key] = val
-	return ssmMap[key]
+	return val
 }
 
 // String returns the string value at the given key.
@@ -212,8 +211,7 @@ func String(keys ...string) string {
 		return ssmMap[val]
 	}
 
-	ssmMap[key] = val
-	return ssmMap[key]
+	return val
 }
 
 // BoolOr returns the bool value at the given key.
