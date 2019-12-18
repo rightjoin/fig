@@ -310,8 +310,6 @@ func fetchFromVault(vaultKey string) string {
 		if ssmVal != nil {
 			secureVal = *ssmVal
 		}
-	default:
-		panic("NO implementaion found for " + vaultKey)
 	}
 
 	if secureVal != "" {
