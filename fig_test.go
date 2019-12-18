@@ -126,6 +126,12 @@ func TestSSMString(t *testing.T) {
 	assert.Equal(t, "SierraTango@61", str2)
 }
 
+func TestSSMStringOr(t *testing.T) {
+	configuration = nil
+
+	assert.Equal(t, "optional", StringOr("optional", "ssm-string.optional"))
+}
+
 func TestSSMStruct(t *testing.T) {
 	configuration = nil
 
@@ -139,4 +145,5 @@ func TestSSMStruct(t *testing.T) {
 
 	Struct(&cs, "ssm-struct", "struct")
 	assert.Equal(t, "SierraTango@61", cs.StorePassword)
+	assert.Equal(t, "ssm@user", cs.UserName)
 }

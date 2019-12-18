@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/jacobstr/confer"
@@ -21,9 +20,9 @@ import (
 // - eg. --APP_PORT=1234, should be bubbled to the right place
 var configuration *confer.Config
 
-const supportedProtocolPrefix = "ssm@"
+const ssmPrefix = "ssm@"
 
-var ssmMap = make(map[string]string, 0)
+var secureMap = make(map[string]string, 0)
 
 // FileOrder contains the name, path and order in which the configuration
 // files will be read. The first file will have highest priority
@@ -173,17 +172,10 @@ func StringOr(defaultVal string, keys ...string) string {
 	}
 
 	val := configuration.GetString(key)
-	if _, ok := ssmMap[val]; ok {
-		return ssmMap[val]
-	}
+	val = fetchFromVault(val)
 
-	if strings.HasPrefix(val, supportedProtocolPrefix) {
-		ssmVal, err := FetchFromSSM(val)
-		if err != nil {
-			return defaultVal
-		}
-		ssmMap[val] = *ssmVal
-		return ssmMap[val]
+	if val == key {
+		return defaultVal
 	}
 
 	return val
@@ -196,20 +188,8 @@ func String(keys ...string) string {
 	MustExist(key)
 
 	val := configuration.GetString(key)
-	if _, ok := ssmMap[val]; ok {
-		return ssmMap[val]
-	}
 
-	if strings.HasPrefix(val, supportedProtocolPrefix) {
-		ssmVal, err := FetchFromSSM(val)
-		if err != nil {
-			fmt.Printf("cannot fetch value from SSM for key: %s", key)
-			return val
-		}
-
-		ssmMap[val] = *ssmVal
-		return ssmMap[val]
-	}
+	val = fetchFromVault(val)
 
 	return val
 }
@@ -314,12 +294,42 @@ func Struct(addr interface{}, keys ...string) {
 	}
 }
 
-// FetchFromSSM looks up the AWS SSM for the given key and returns the result.
-func FetchFromSSM(ssmString string) (*string, error) {
+// fetchFromVault will look up the key on relevant vault service, returning
+// the result if found, else returns the key itself.
+func fetchFromVault(vaultKey string) string {
+
+	if _, ok := secureMap[vaultKey]; ok {
+		return secureMap[vaultKey]
+	}
+
+	secureVal := ""
+
+	switch {
+	case strings.HasPrefix(vaultKey, ssmPrefix):
+		ssmVal := fetchFromSSM(vaultKey)
+		if ssmVal != nil {
+			secureVal = *ssmVal
+		}
+	default:
+		panic("NO implementaion found for " + vaultKey)
+	}
+
+	if secureVal != "" {
+		secureMap[vaultKey] = secureVal
+
+		return secureVal
+	}
+
+	return vaultKey
+}
+
+// fetchFromSSM fetches the value corresponding to the given vaultKey from
+// AWS SSM.
+func fetchFromSSM(vaultKey string) *string {
 
 	// Separate the look-up key from the ssmString
 	// e.g. ssm@key
-	key := ssmString[strings.Index(ssmString, "@")+1:]
+	key := vaultKey[strings.Index(vaultKey, "@")+1:]
 
 	awsRegion := os.Getenv("AWS_REGION")
 	// use the default aws region
@@ -348,11 +358,10 @@ func FetchFromSSM(ssmString string) (*string, error) {
 	})
 
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-
-			return nil, errors.Wrapf(awsErr, "cannot fetch value from SSM corresponding to key %s", key)
-		}
+		fmt.Printf("SSM: Cannot fetch value across key %s", vaultKey)
+		return nil
 	}
 
-	return val.Parameter.Value, nil
+	ssmVal := val.Parameter.Value
+	return ssmVal
 }
