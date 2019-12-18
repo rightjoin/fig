@@ -1,7 +1,7 @@
 
 boolean : true
 integer : 123
-string  : "hello"
+string: "hello"
 floating-point: 12.34
 
 
@@ -35,3 +35,13 @@ string-slice:
     - str1
     - str2
     - 123
+
+ssm-string:
+    password: ssm@password
+    store-password: ssm@/store/password
+
+ssm-struct:
+    struct:
+        password: ssm@password
+        store-password: ssm@/store/password
+        username: ssm@user
