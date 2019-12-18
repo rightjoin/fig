@@ -118,8 +118,8 @@ func MustExist(key string) {
 	}
 }
 
-// ValueOf returns the generic value corresponding to a key.
-func ValueOf(keys ...string) interface{} {
+// Interface returns the generic value corresponding to a key.
+func Interface(keys ...string) interface{} {
 	key := strings.Join(keys, ".")
 	MustExist(key)
 

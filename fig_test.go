@@ -119,7 +119,7 @@ func TestStringSliceOr(t *testing.T) {
 func TestValueOf(t *testing.T) {
 	configuration = nil
 
-	data := ValueOf("arr-json")
+	data := Interface("arr-json")
 	arr := data.([]interface{})
 
 	assert.Equal(t, 2, len(arr))
