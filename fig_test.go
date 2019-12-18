@@ -106,7 +106,7 @@ func TestStringSlice(t *testing.T) {
 	configuration = nil
 
 	splice := StringSlice("string-slice")
-	assert.Equal(t, []string{"str1", "str2"}, splice)
+	assert.Equal(t, []string{"str1", "str2", "123"}, splice)
 }
 
 func TestStringSliceOr(t *testing.T) {
@@ -116,6 +116,14 @@ func TestStringSliceOr(t *testing.T) {
 	assert.Equal(t, []string{"def1"}, splice)
 }
 
+func TestValueOf(t *testing.T) {
+	configuration = nil
+
+	data := Interface("arr-json")
+	arr := data.([]interface{})
+
+	assert.Equal(t, 2, len(arr))
+}
 func TestSSMString(t *testing.T) {
 	configuration = nil
 

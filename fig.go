@@ -125,6 +125,14 @@ func MustExist(key string) {
 	}
 }
 
+// Interface returns the generic value corresponding to a key.
+func Interface(keys ...string) interface{} {
+	key := strings.Join(keys, ".")
+	MustExist(key)
+
+	return configuration.Get(key)
+}
+
 // IntOr returns the int value at the given key.
 // If key is missing it returns defaultVal
 func IntOr(defaultVal int, keys ...string) int {
