@@ -1,7 +1,7 @@
 
 boolean : true
 integer : 123
-string  : "hello"
+string: "hello"
 floating-point: 12.34
 
 

@@ -182,10 +182,12 @@ func StringOr(defaultVal string, keys ...string) string {
 		if err != nil {
 			return defaultVal
 		}
-		val = *ssmVal
+		ssmMap[val] = *ssmVal
+		return ssmMap[val]
 	}
 
-	return val
+	ssmMap[key] = val
+	return ssmMap[key]
 }
 
 // String returns the string value at the given key.
@@ -205,10 +207,13 @@ func String(keys ...string) string {
 			fmt.Printf("cannot fetch value from SSM for key: %s", key)
 			return val
 		}
-		val = *ssmVal
+
+		ssmMap[val] = *ssmVal
+		return ssmMap[val]
 	}
 
-	return val
+	ssmMap[key] = val
+	return ssmMap[key]
 }
 
 // BoolOr returns the bool value at the given key.
