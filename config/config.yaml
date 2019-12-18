@@ -1,7 +1,7 @@
 
 boolean : true
 integer : 123
-string  : "hello"
+string: "hello"
 floating-point: 12.34
 
 
@@ -44,3 +44,13 @@ arr-json:
         key: value2
         key2: value3
         key3: value4
+
+ssm-string:
+    password: ssm@password
+    store-password: ssm@/store/password
+
+ssm-struct:
+    struct:
+        password: ssm@password
+        store-password: ssm@/store/password
+        username: ssm@user

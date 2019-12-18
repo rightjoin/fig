@@ -106,7 +106,7 @@ func TestStringSlice(t *testing.T) {
 	configuration = nil
 
 	splice := StringSlice("string-slice")
-	assert.Equal(t, []string{"str1", "str2"}, splice)
+	assert.Equal(t, []string{"str1", "str2", "123"}, splice)
 }
 
 func TestStringSliceOr(t *testing.T) {
@@ -123,4 +123,35 @@ func TestValueOf(t *testing.T) {
 	arr := data.([]interface{})
 
 	assert.Equal(t, 2, len(arr))
+}
+func TestSSMString(t *testing.T) {
+	configuration = nil
+
+	str := String("ssm-string.password")
+	str2 := String("ssm-string.store-password")
+
+	assert.Equal(t, "TheReaper61", str)
+	assert.Equal(t, "SierraTango@61", str2)
+}
+
+func TestSSMStringOr(t *testing.T) {
+	configuration = nil
+
+	assert.Equal(t, "optional", StringOr("optional", "ssm-string.optional"))
+}
+
+func TestSSMStruct(t *testing.T) {
+	configuration = nil
+
+	type ConfigStruct struct {
+		Password      string `json:"password"`
+		StorePassword string `json:"store-password"`
+		UserName      string `json:"username"`
+	}
+
+	cs := ConfigStruct{}
+
+	Struct(&cs, "ssm-struct", "struct")
+	assert.Equal(t, "SierraTango@61", cs.StorePassword)
+	assert.Equal(t, "ssm@user", cs.UserName)
 }

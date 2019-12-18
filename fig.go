@@ -7,15 +7,22 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/serenize/snaker"
-
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ssm"
 	"github.com/jacobstr/confer"
+	"github.com/pkg/errors"
+	"github.com/serenize/snaker"
 )
 
 // TODO:
 // - allow command line arguments to be passed to override configurations
 // - eg. --APP_PORT=1234, should be bubbled to the right place
 var configuration *confer.Config
+
+const ssmPrefix = "ssm@"
+
+var secureMap = make(map[string]string, 0)
 
 // FileOrder contains the name, path and order in which the configuration
 // files will be read. The first file will have highest priority
@@ -172,7 +179,14 @@ func StringOr(defaultVal string, keys ...string) string {
 		return defaultVal
 	}
 
-	return configuration.GetString(key)
+	val := configuration.GetString(key)
+	val = fetchFromVault(val)
+
+	if val == key {
+		return defaultVal
+	}
+
+	return val
 }
 
 // String returns the string value at the given key.
@@ -180,7 +194,12 @@ func StringOr(defaultVal string, keys ...string) string {
 func String(keys ...string) string {
 	key := strings.Join(keys, ".")
 	MustExist(key)
-	return configuration.GetString(key)
+
+	val := configuration.GetString(key)
+
+	val = fetchFromVault(val)
+
+	return val
 }
 
 // BoolOr returns the bool value at the given key.
@@ -281,4 +300,74 @@ func Struct(addr interface{}, keys ...string) {
 			}
 		}
 	}
+}
+
+// fetchFromVault will look up the key on relevant vault service, returning
+// the result if found, else returns the key itself.
+func fetchFromVault(vaultKey string) string {
+
+	if _, ok := secureMap[vaultKey]; ok {
+		return secureMap[vaultKey]
+	}
+
+	secureVal := ""
+
+	switch {
+	case strings.HasPrefix(vaultKey, ssmPrefix):
+		ssmVal := fetchFromSSM(vaultKey)
+		if ssmVal != nil {
+			secureVal = *ssmVal
+		}
+	}
+
+	if secureVal != "" {
+		secureMap[vaultKey] = secureVal
+
+		return secureVal
+	}
+
+	return vaultKey
+}
+
+// fetchFromSSM fetches the value corresponding to the given vaultKey from
+// AWS SSM.
+func fetchFromSSM(vaultKey string) *string {
+
+	// Separate the look-up key from the ssmString
+	// e.g. ssm@key
+	key := vaultKey[strings.Index(vaultKey, "@")+1:]
+
+	awsRegion := os.Getenv("AWS_REGION")
+	// use the default aws region
+	if awsRegion == "" {
+		awsRegion = "ap-south-1"
+	}
+
+	config := &aws.Config{
+		Region: aws.String(awsRegion),
+	}
+
+	awsSess, err := session.NewSessionWithOptions(session.Options{
+		Config:            *config,
+		SharedConfigState: session.SharedConfigEnable,
+	})
+
+	if err != nil {
+		panic(errors.Wrap(err, "cannot create aws session for fetching creds form SSM"))
+	}
+
+	ssmSvc := ssm.New(awsSess, config)
+
+	val, err := ssmSvc.GetParameter(&ssm.GetParameterInput{
+		Name:           aws.String(key),
+		WithDecryption: aws.Bool(true),
+	})
+
+	if err != nil {
+		fmt.Printf("SSM: Cannot fetch value across key %s", vaultKey)
+		return nil
+	}
+
+	ssmVal := val.Parameter.Value
+	return ssmVal
 }
