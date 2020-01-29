@@ -175,6 +175,12 @@ func Float(keys ...string) float64 {
 // If key is missing it returns defaultVal
 func StringOr(defaultVal string, keys ...string) string {
 	key := strings.Join(keys, ".")
+
+	// Check first in the environment-variables
+	if val, ok := getFromEnv(key); ok {
+		return val
+	}
+
 	if !Exists(key) {
 		return defaultVal
 	}
@@ -190,13 +196,20 @@ func StringOr(defaultVal string, keys ...string) string {
 }
 
 // String returns the string value at the given key.
+// First preference is given to the environment-variable,
+// then the config files.
 // Panics if the key is missing.
 func String(keys ...string) string {
 	key := strings.Join(keys, ".")
+
+	// Check first in the environment-variables
+	if val, ok := getFromEnv(key); ok {
+		return val
+	}
+
 	MustExist(key)
 
 	val := configuration.GetString(key)
-
 	val = fetchFromVault(val)
 
 	return val
@@ -372,8 +385,18 @@ func fetchFromSSM(vaultKey string) *string {
 	return ssmVal
 }
 
+// Looks for the value corresponding to key in the environment variables.
+func getFromEnv(key string) (string, bool) {
+	val, isPresent := os.LookupEnv(getEnvVariable(key))
+	if isPresent {
+		return val, true
+	}
+	return "", false
+}
+
 // Get corresponding environment variable for the given key.
-// Replaces every - and . in the key with underscore, while
+// Replaces every - and . in the key with underscore
+// (since env-vars can't have other chararcters), while
 // capitalizing the key.
 func getEnvVariable(key string) string {
 
@@ -381,17 +404,4 @@ func getEnvVariable(key string) string {
 	key = strings.ReplaceAll(key, ".", "_")
 	key = strings.ToUpper(key)
 	return key
-}
-
-// StringEnv returns the string value at the given key.
-// Priority to environment variable and then from configuration
-// Panics if the key is missing.
-func StringEnv(keys ...string) string {
-	key := strings.Join(keys, ".")
-	val, isPresent := os.LookupEnv(getEnvVariable(key))
-	if isPresent {
-		return val
-	}
-	MustExist(key)
-	return configuration.GetString(key)
 }
