@@ -371,3 +371,27 @@ func fetchFromSSM(vaultKey string) *string {
 	ssmVal := val.Parameter.Value
 	return ssmVal
 }
+
+// Get corresponding environment variable for the given key.
+// Replaces every - and . in the key with underscore, while
+// capitalizing the key.
+func getEnvVariable(key string) string {
+
+	key = strings.ReplaceAll(key, "-", "_")
+	key = strings.ReplaceAll(key, ".", "_")
+	key = strings.ToUpper(key)
+	return key
+}
+
+// StringEnv returns the string value at the given key.
+// Priority to environment variable and then from configuration
+// Panics if the key is missing.
+func StringEnv(keys ...string) string {
+	key := strings.Join(keys, ".")
+	val, isPresent := os.LookupEnv(getEnvVariable(key))
+	if isPresent {
+		return val
+	}
+	MustExist(key)
+	return configuration.GetString(key)
+}

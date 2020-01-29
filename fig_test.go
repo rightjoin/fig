@@ -155,3 +155,9 @@ func TestSSMStruct(t *testing.T) {
 	assert.Equal(t, "SierraTango@61", cs.StorePassword)
 	assert.Equal(t, "ssm@user", cs.UserName)
 }
+
+func TestStringEnv(t *testing.T) {
+	configuration = nil
+
+	assert.Equal(t, "hello", StringEnv("string"))
+}
