@@ -102,6 +102,7 @@ func jumpstart() {
 
 	configuration = confer.NewConfig()
 	configuration.ReadPaths(filesOk...)
+	configuration.AutomaticEnv()
 	if ShowFiles {
 		fmt.Println("fig configuration loaded:", strings.Join(filesOk, " → "))
 	}
@@ -175,6 +176,7 @@ func Float(keys ...string) float64 {
 // If key is missing it returns defaultVal
 func StringOr(defaultVal string, keys ...string) string {
 	key := strings.Join(keys, ".")
+
 	if !Exists(key) {
 		return defaultVal
 	}
@@ -193,10 +195,10 @@ func StringOr(defaultVal string, keys ...string) string {
 // Panics if the key is missing.
 func String(keys ...string) string {
 	key := strings.Join(keys, ".")
+
 	MustExist(key)
 
 	val := configuration.GetString(key)
-
 	val = fetchFromVault(val)
 
 	return val

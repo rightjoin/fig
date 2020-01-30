@@ -4,6 +4,10 @@ integer : 123
 string: "hello"
 floating-point: 12.34
 
+fg:
+    config:
+        env: "from-config"
+
 
 tooverride: yaml
 
