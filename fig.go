@@ -102,6 +102,7 @@ func jumpstart() {
 
 	configuration = confer.NewConfig()
 	configuration.ReadPaths(filesOk...)
+	configuration.AutomaticEnv()
 	if ShowFiles {
 		fmt.Println("fig configuration loaded:", strings.Join(filesOk, " → "))
 	}
@@ -176,11 +177,6 @@ func Float(keys ...string) float64 {
 func StringOr(defaultVal string, keys ...string) string {
 	key := strings.Join(keys, ".")
 
-	// Check first in the environment-variables
-	if val, ok := getFromEnv(key); ok {
-		return val
-	}
-
 	if !Exists(key) {
 		return defaultVal
 	}
@@ -201,11 +197,6 @@ func StringOr(defaultVal string, keys ...string) string {
 // Panics if the key is missing.
 func String(keys ...string) string {
 	key := strings.Join(keys, ".")
-
-	// Check first in the environment-variables
-	if val, ok := getFromEnv(key); ok {
-		return val
-	}
 
 	MustExist(key)
 
@@ -383,25 +374,4 @@ func fetchFromSSM(vaultKey string) *string {
 
 	ssmVal := val.Parameter.Value
 	return ssmVal
-}
-
-// Looks for the value corresponding to key in the environment variables.
-func getFromEnv(key string) (string, bool) {
-	val, isPresent := os.LookupEnv(getEnvVariable(key))
-	if isPresent {
-		return val, true
-	}
-	return "", false
-}
-
-// Get corresponding environment variable for the given key.
-// Replaces every - and . in the key with underscore
-// (since env-vars can't have other chararcters), while
-// capitalizing the key.
-func getEnvVariable(key string) string {
-
-	key = strings.ReplaceAll(key, "-", "_")
-	key = strings.ReplaceAll(key, ".", "_")
-	key = strings.ToUpper(key)
-	return key
 }

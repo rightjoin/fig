@@ -31,6 +31,7 @@ func TestString(t *testing.T) {
 
 	assert.Equal(t, "world", StringOr("world", "something"))
 	assert.Equal(t, "hello", StringOr("world", "string"))
+	assert.Equal(t, "dev", String("fg.config.env"))
 }
 
 func TestFloat(t *testing.T) {
