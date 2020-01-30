@@ -192,8 +192,6 @@ func StringOr(defaultVal string, keys ...string) string {
 }
 
 // String returns the string value at the given key.
-// First preference is given to the environment-variable,
-// then the config files.
 // Panics if the key is missing.
 func String(keys ...string) string {
 	key := strings.Join(keys, ".")
