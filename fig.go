@@ -344,7 +344,7 @@ func fetchFromSSM(vaultKey string) *string {
 	}
 
 	// fetch the profile, defaults to "default" profile
-	profile := os.Getenv("FG_SSM_PROFILE")
+	profile := os.Getenv("AWS_PROFILE")
 	if profile == "" {
 		profile = "default"
 	}
