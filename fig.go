@@ -81,11 +81,11 @@ func init() {
 
 	FileOrder = files
 
-	jumpstart()
+	Reset()
 }
 
-// jumpstart loads the configuration
-func jumpstart() {
+// Reset loads the configuration
+func Reset() {
 
 	var filesOk = []string{}
 
@@ -112,7 +112,7 @@ func jumpstart() {
 // It also loads configuration (if missing)
 func Exists(keys ...string) bool {
 	if configuration == nil {
-		jumpstart()
+		Reset()
 	}
 
 	key := strings.Join(keys, ".")
