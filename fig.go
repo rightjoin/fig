@@ -345,6 +345,12 @@ func fetchFromSSM(vaultKey string) *string {
 		awsRegion = "ap-south-1"
 	}
 
+	// fetch the profile, defaults to "default" profile
+	profile := os.Getenv("AWS_PROFILE")
+	if profile == "" {
+		profile = "default"
+	}
+
 	config := &aws.Config{
 		Region: aws.String(awsRegion),
 	}
@@ -352,6 +358,7 @@ func fetchFromSSM(vaultKey string) *string {
 	awsSess, err := session.NewSessionWithOptions(session.Options{
 		Config:            *config,
 		SharedConfigState: session.SharedConfigEnable,
+		Profile:           profile,
 	})
 
 	if err != nil {
