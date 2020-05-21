@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -22,7 +23,7 @@ var configuration *confer.Config
 
 const ssmPrefix = "ssm@"
 
-var secureMap = make(map[string]string, 0)
+var secureMap = sync.Map{}
 
 // FileOrder contains the name, path and order in which the configuration
 // files will be read. The first file will have highest priority
@@ -308,8 +309,8 @@ func Struct(addr interface{}, keys ...string) {
 // the result if found, else returns the key itself.
 func fetchFromVault(vaultKey string) string {
 
-	if _, ok := secureMap[vaultKey]; ok {
-		return secureMap[vaultKey]
+	if val, ok := secureMap.Load(vaultKey); ok && val != nil {
+		return fmt.Sprint(val)
 	}
 
 	secureVal := ""
@@ -323,7 +324,7 @@ func fetchFromVault(vaultKey string) string {
 	}
 
 	if secureVal != "" {
-		secureMap[vaultKey] = secureVal
+		secureMap.Store(vaultKey, secureVal)
 
 		return secureVal
 	}
