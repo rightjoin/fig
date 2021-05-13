@@ -24,62 +24,21 @@ const ssmPrefix = "ssm@"
 
 var secureMap = make(map[string]string, 0)
 
-// FileOrder contains the name, path and order in which the configuration
-// files will be read. The first file will have highest priority
-var FileOrder = []string{
-	// highest
-	"./config/production.yaml",
-	"./config/production.json",
-	"production.yaml",
-	"production.json",
-
-	// medium
-	"./config/dev.yaml",
-	"./config/dev.json",
-	"dev.yaml",
-	"dev.json",
-
-	// lowest
-	"./config/config.yaml",
-	"./config/config.json",
-	"config.yaml",
-	"config.json",
-}
+var FolderOrder = []string{"./config/", ""}
+var EnvironmentOrder = []string{"prod", "dev", "config"}
+var ExtensionOrder = []string{".yaml", ".json"}
 
 // ShowFiles if set to true, will output the files to StdOut
 // which were read to build the overall configuration
-var ShowFiles = false
+var ShowFiles = true
 
 func init() {
-	files := make([]string, 0)
 
 	env := os.Getenv("FG_CONFIG_ENV")
 
-	switch {
-	case env != "" && env != "dev":
-		files = append(files, []string{
-			fmt.Sprintf("./config/%s.yaml", env),
-			fmt.Sprintf("./config/%s.json", env),
-			fmt.Sprintf("%s.yaml", env),
-			fmt.Sprintf("%s.json", env),
-		}...)
-	default:
-		files = append(files, []string{
-			"./config/dev.yaml",
-			"./config/dev.json",
-			"dev.yaml",
-			"dev.json",
-		}...)
+	if env != "" {
+		EnvironmentOrder = []string{"env", "config"}
 	}
-
-	files = append(files, []string{
-		"./config/config.yaml",
-		"./config/config.json",
-		"config.yaml",
-		"config.json",
-	}...)
-
-	FileOrder = files
 
 	Reset()
 }
@@ -89,13 +48,23 @@ func Reset() {
 
 	var filesOk = []string{}
 
+	// Files to search
+	var filesOrder = []string{}
+	for _, env := range EnvironmentOrder {
+		for _, folder := range FolderOrder {
+			for _, extn := range ExtensionOrder {
+				filesOrder = append(filesOrder, folder+env+extn)
+			}
+		}
+	}
+
 	// loop in reverse order (lowest priority first)
-	for i := len(FileOrder) - 1; i >= 0; i-- {
+	for i := len(filesOrder) - 1; i >= 0; i-- {
 		tmp := confer.NewConfig()
-		err := tmp.ReadPaths(FileOrder[i])
+		err := tmp.ReadPaths(filesOrder[i])
 		if err == nil {
 			// file found (path is good)
-			abs, _ := filepath.Abs(FileOrder[i])
+			abs, _ := filepath.Abs(filesOrder[i])
 			filesOk = append(filesOk, abs)
 		}
 	}
@@ -103,8 +72,9 @@ func Reset() {
 	configuration = confer.NewConfig()
 	configuration.ReadPaths(filesOk...)
 	configuration.AutomaticEnv()
-	if ShowFiles {
-		fmt.Println("fig configuration loaded:", strings.Join(filesOk, " → "))
+	if BoolOr(false, "fig.show") {
+		fmt.Println("fig files searched:", strings.Join(filesOrder, " → "))
+		fmt.Println("fig file found and loaded:", strings.Join(filesOk, " → "))
 	}
 }
 

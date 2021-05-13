@@ -31,7 +31,7 @@ func TestString(t *testing.T) {
 
 	assert.Equal(t, "world", StringOr("world", "something"))
 	assert.Equal(t, "hello", StringOr("world", "string"))
-	assert.Equal(t, "dev", String("fg.config.env"))
+	assert.Equal(t, "from-config", String("fg.config.env"))
 }
 
 func TestFloat(t *testing.T) {
@@ -49,11 +49,13 @@ func TestOverriding(t *testing.T) {
 	assert.Equal(t, "json", String("tooverride"))
 
 	// now lets change FileOrder
-	oldOrder := FileOrder
+	oldOrder := EnvironmentOrder
 	configuration = nil
-	FileOrder = []string{"./config/config.yaml", "./config/dev.json"}
+	EnvironmentOrder = []string{"config", "dev"}
+	Reset()
 	assert.Equal(t, "yaml", String("tooverride"))
-	FileOrder = oldOrder
+	EnvironmentOrder = oldOrder
+	Reset()
 }
 
 func TestPanic(t *testing.T) {
